@@ -16,6 +16,9 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . /var/www/html
 
+# Copy example env for CI/CD (avoids composer script failures)
+RUN if [ ! -f .env ]; then cp .env.example .env; fi
+
 # Set permissions for Laravel folders
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
