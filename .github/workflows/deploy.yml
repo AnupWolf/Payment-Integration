@@ -4,14 +4,13 @@ on:
   push:
     branches:
       - main   # change if using dev/staging
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
