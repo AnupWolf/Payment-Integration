@@ -1,22 +1,37 @@
 # Use official PHP Apache image
 FROM php:8.2-apache
 
-# Install dependencies
-RUN docker-php-ext-install pdo pdo_mysql
-
-# Enable mod_rewrite for Laravel or routing
+# Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Copy project files to Apache root
-COPY . /var/www/html/
+# Install PHP extensions needed for Laravel
+RUN docker-php-ext-install pdo pdo_mysql
+
+# Install Composer
+COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
 # Set working directory
-WORKDIR /var/www/html/
+WORKDIR /var/www/html
 
-# Set permissions (optional, for Laravel storage)
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Copy project files
+COPY . /var/www/html
 
-# Expose port 80
+# Set permissions for Laravel folders
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Install Composer dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# Set Apache document root to Laravel public folder
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+
+# Optional: run migrations automatically (uncomment if needed)
+# RUN php artisan migrate --force
+
+# Expose Apache port
 EXPOSE 80
 
 # Start Apache
